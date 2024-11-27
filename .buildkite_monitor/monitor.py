@@ -172,9 +172,9 @@ def alert(df, alerts_sent=alerts_sent, wait_time_thr=WAITING_TIME_ALERT_THR, age
     
     # job waiting time alert:
     for _, row in df.iterrows():
-        if row['waited_seconds'] > wait_time_thr and row['state_job']!='canceled' and pd.isna(row['started_at']): 
+        if row['waited_seconds'] > wait_time_thr and row['state_job']!='canceled' and pd.isna(row['started_at']):
             if not alerts_sent.empty:
-                value_exists_in_column = alerts_sent['id_job'].isin([row['id_job']]).any()
+                value_exists_in_column = alerts_sent[alerts_sent.alert_type=='job']['id_job'].isin([row['id_job']]).any()
                 if value_exists_in_column:
                     continue
             new_row = pd.DataFrame.from_records({'time': now, 'alert_type': 'job', 'id_job': row['id_job'], 'state_job': row['state_job'], 'name': row['name'], 'number': row['number'], 'id_build': row['id_build'], 'waited_seconds': row['waited_seconds'],  
@@ -198,17 +198,15 @@ def alert(df, alerts_sent=alerts_sent, wait_time_thr=WAITING_TIME_ALERT_THR, age
 
     # agent health alert:
     failed_jobs_from_diff_builds = df[(df.state_job=='failed') & (df.soft_failed==False)].groupby(['agent_id', 'agent_name', 'agent_web_url'], as_index=False).agg(nunique_failed_builds=('id_build', 'nunique'), failed_builds=('id_build', 'unique'))
-    
     unhealthy_agents = failed_jobs_from_diff_builds[failed_jobs_from_diff_builds.nunique_failed_builds>=agent_failed_builds_thr]
     for _, row in unhealthy_agents.iterrows():
         if not alerts_sent.empty:
-                value_exists_in_column = alerts_sent['agent_id'].isin([row['agent_id']]).any()                
-                if value_exists_in_column:
-                    sent_failed_builds = alerts_sent.loc[alerts_sent['agent_id'] == row['agent_id'], 'failed_builds'].str.findall(r'([a-f0-9\-]{36})').values[0]
-        
-                    # Check if there is any intersection between row['failed_builds'] and sent_failed_builds
-                    if any(failed_build in sent_failed_builds for failed_build in row['failed_builds']):
-                        continue
+            value_exists_in_column = alerts_sent[alerts_sent.alert_type=='agent']['agent_id'].isin([row['agent_id']]).any()
+            if value_exists_in_column:
+                sent_failed_builds = alerts_sent.loc[(alerts_sent['alert_type']=='agent') & (alerts_sent['agent_id'] == row['agent_id']), 'failed_builds'].str.findall(r'([a-f0-9\-]{36})').values[0]
+                # Check if there is any intersection between row['failed_builds'] and sent_failed_builds
+                if any(failed_build in sent_failed_builds for failed_build in row['failed_builds']):
+                    continue
         new_row = pd.DataFrame({'time': now, 'alert_type': 'agent', 'id_job': np.nan, 'state_job': np.nan, 'name': np.nan, 'number': np.nan, 'id_build': np.nan, 'waited_seconds': np.nan,  
                         'web_url_job': np.nan, 'agent_id': row['agent_id'], 'agent_name': row['agent_name'], 'agent_web_url': row['agent_web_url'], 'nunique_failed_builds': row['nunique_failed_builds'], 'failed_builds': [row['failed_builds'].tolist()]}, index=[0])
         
@@ -217,7 +215,7 @@ def alert(df, alerts_sent=alerts_sent, wait_time_thr=WAITING_TIME_ALERT_THR, age
         alerts_df = pd.concat([alerts_df, new_row], ignore_index=True)
 
     return alerts, alerts_df
-
+    
 alerts, alerts_df = alert(result_df_amd)
 
 log = log_alerts(result_df_amd)
