@@ -120,6 +120,7 @@ __global__ void rms_norm_kernel(
 #else
 
 // TODO(maleksan): Investigate why vectorization doesn't work for Navi.
+// (jundali2): Use float type to store intermediate results on Navi to avoid accuracy downgrade
 template <typename scalar_t>
 __global__ void rms_norm_kernel(
     scalar_t* __restrict__ out,           // [..., hidden_size]
@@ -127,26 +128,42 @@ __global__ void rms_norm_kernel(
     const scalar_t* __restrict__ weight,  // [hidden_size]
     const float epsilon, const int num_tokens, const int hidden_size) {
   __shared__ float s_variance;
-  float variance = 0.0f;
 
-  for (int idx = threadIdx.x; idx < hidden_size; idx += blockDim.x) {
-    const float x = (float)input[blockIdx.x * hidden_size + idx];
-    variance += x * x;
+  vec8_t<float> v8_variance = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  vec8_t<scalar_t>* vectorized_out = reinterpret_cast<vec8_t<scalar_t>*>(out);
+  vec8_t<scalar_t> const* vectorized_in =
+      reinterpret_cast<vec8_t<scalar_t> const*>(input);
+  vec8_t<scalar_t> const* vectorized_weight =
+      reinterpret_cast<vec8_t<scalar_t> const*>(weight);
+  const int vec_hidden_size = hidden_size >> 3;
+
+  // Compute variance. Be careful, hidden_size should multiple of 4.
+  for (int idx = threadIdx.x; idx < vec_hidden_size; idx += blockDim.x) {
+    vec8_t<scalar_t> x = vectorized_in[blockIdx.x * vec_hidden_size + idx];
+    vec8_t<float> x_fp32 = {(float)x.x, (float)x.y, (float)x.z, (float)x.w, (float)x.u, (float)x.v, (float)x.s, (float)x.t};
+    v8_variance += x_fp32 * x_fp32;
   }
+  float v8_variance_sum = v8_variance.sum();
 
   using BlockReduce = cub::BlockReduce<float, 1024>;
   __shared__ typename BlockReduce::TempStorage reduceStore;
-  variance = BlockReduce(reduceStore).Reduce(variance, cub::Sum{}, blockDim.x);
+  float variance =
+      BlockReduce(reduceStore).Reduce(v8_variance_sum, cub::Sum{}, blockDim.x);
 
   if (threadIdx.x == 0) {
     s_variance = rsqrtf(variance / hidden_size + epsilon);
   }
   __syncthreads();
 
-  for (int idx = threadIdx.x; idx < hidden_size; idx += blockDim.x) {
-    float x = (float)input[blockIdx.x * hidden_size + idx];
-    out[blockIdx.x * hidden_size + idx] =
-        ((scalar_t)(x * s_variance)) * weight[idx];
+  for (int idx = threadIdx.x; idx < vec_hidden_size; idx += blockDim.x) {
+    vec8_t<scalar_t> v8_in = vectorized_in[blockIdx.x * vec_hidden_size + idx];
+    vec8_t<scalar_t> v8_w = vectorized_weight[idx];
+    vec8_t<float> v8_in_fp32 = {(float)v8_in.x, (float)v8_in.y, (float)v8_in.z, (float)v8_in.w, (float)v8_in.u, (float)v8_in.v, (float)v8_in.s, (float)v8_in.t};
+    vec8_t<float> v8_w_fp32 = {(float)v8_w.x, (float)v8_w.y, (float)v8_w.z, (float)v8_w.w, (float)v8_w.u, (float)v8_w.v, (float)v8_w.s, (float)v8_w.t};
+    vec8_t<float> v8_out_fp32 = v8_in_fp32 * s_variance * v8_w_fp32;
+    vec8_t<scalar_t> v8_out = {v8_out_fp32.x, v8_out_fp32.y, v8_out_fp32.z, v8_out_fp32.w, v8_out_fp32.u, v8_out_fp32.v, v8_out_fp32.s, v8_out_fp32.t};
+    vectorized_out[blockIdx.x * vec_hidden_size + idx] = v8_out;
   }
 }
 
