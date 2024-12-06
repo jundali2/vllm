@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     VLLM_ROCM_PREFER_TRITON: bool = True
     VLLM_USE_SDPA_ATTENTION: bool = False
     VLLM_USE_TRITON_FLASH_ATTN: bool = True
+    VLLM_USE_TRITON_PAGED_ATTN_DECODE: bool = False 
     VLLM_USE_ROCM_SKINNY_GEMM: bool = True
     VLLM_USE_ROCM_CUSTOM_PAGED_ATTN: bool = True
     VLLM_USE_ROCM_CUSTOM_PAGED_ATTN_FP8_OUT: bool = True
@@ -228,6 +229,11 @@ environment_variables: Dict[str, Callable[[], Any]] = {
     # flag to control if vllm should use triton flash attention
     "VLLM_USE_TRITON_FLASH_ATTN":
     lambda: (os.environ.get("VLLM_USE_TRITON_FLASH_ATTN", "True").lower() in
+             ("true", "1")),
+    
+    # flag to control if vllm should use triton paged attention decode
+    "VLLM_USE_TRITON_PAGED_ATTN_DECODE":
+    lambda: (os.environ.get("VLLM_USE_TRITON_PAGED_ATTN_DECODE", "False").lower() in
              ("true", "1")),
 
     # Internal flag to enable Dynamo fullgraph capture
