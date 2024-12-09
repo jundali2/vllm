@@ -1285,6 +1285,9 @@ class GPUModelRunnerBase(ModelRunnerBase[TModelInputForGPU]):
                 batch_size=batch_size,
                 dtype=self.model_config.dtype,
                 device=self.device)
+        
+        # Disable KV Scale Calculation for dummy data during profile run
+        model_input.attn_metadata.enable_kv_scales_calculation = False
 
         graph_batch_size = self.max_batchsize_to_capture
         batch_size_capture_list = [
@@ -1435,7 +1438,8 @@ class GPUModelRunnerBase(ModelRunnerBase[TModelInputForGPU]):
                             batch_size,
                             is_encoder_decoder_model=self.model_config.
                             is_encoder_decoder_model))
-
+                    # Disable KV Scale Calculation for graph capture
+                    attn_metadata.enable_kv_scales_calculation = False
                     if self.lora_config:
                         lora_mapping = LoRAMapping(
                             **dict(index_mapping=[0] * batch_size,

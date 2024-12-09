@@ -10,7 +10,7 @@ from vllm.config import CacheConfig
 from vllm.model_executor.layers.quantization.base_config import (
     QuantizationConfig)
 from vllm.model_executor.layers.quantization.kv_cache import BaseKVCacheMethod
-
+import vllm.envs as envs
 
 class Attention(nn.Module):
     """Attention layer.
@@ -38,18 +38,18 @@ class Attention(nn.Module):
         prefix: str = "",
     ) -> None:
         super().__init__()
-        self.calculate_kv_scales = False
         if cache_config is not None:
             kv_cache_dtype = cache_config.cache_dtype
             block_size = cache_config.block_size
             sliding_window = cache_config.sliding_window
             is_attention_free = cache_config.is_attention_free
-            self.calculate_kv_scales = cache_config.calculate_kv_scales
+            calculate_kv_scales = cache_config.calculate_kv_scales
         else:
             kv_cache_dtype = "auto"
             block_size = 16
             sliding_window = None
             is_attention_free = False
+            calculate_kv_scales = False
         if num_kv_heads is None:
             num_kv_heads = num_heads
 
@@ -59,8 +59,9 @@ class Attention(nn.Module):
         # expect the pre-quantized k/v_scale to be loaded along
         # with the model weights.
         self.kv_cache_dtype = kv_cache_dtype
-        self._k_scale = torch.tensor(1.0, device='cuda', dtype=torch.float32)
-        self._v_scale = torch.tensor(1.0, device='cuda', dtype=torch.float32)
+        self.calculate_kv_scales = calculate_kv_scales
+        self._k_scale = torch.tensor(1.0, dtype=torch.float32)
+        self._v_scale = torch.tensor(1.0, dtype=torch.float32)
         quant_method = quant_config.get_quant_method(
             self, prefix=prefix) if quant_config else None
         if quant_method is not None:
@@ -88,8 +89,8 @@ class Attention(nn.Module):
                              alibi_slopes, sliding_window, kv_cache_dtype,
                              blocksparse_params, logits_soft_cap)
         
-        self.enable_kv_scale_calc = False
-        
+        self.k_range = envs.K_SCALE_CONSTANT
+        self.v_range = envs.V_SCALE_CONSTANT
 
     def forward(
         self,
@@ -101,7 +102,7 @@ class Attention(nn.Module):
         attn_type: AttentionType = AttentionType.DECODER,
         fp8_out_scale: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        if self.enable_kv_scale_calc and self.calculate_kv_scales:
+        if self.calculate_kv_scales and attn_metadata.enable_kv_scales_calculation:
             self.calc_kv_scales(key, value)
         
         return self.impl.forward(query,
@@ -115,11 +116,11 @@ class Attention(nn.Module):
                                  fp8_out_scale=fp8_out_scale)
 
     def calc_kv_scales(self, key, value):
-        self._k_scale.copy_(torch.abs(key).max() / 100)
-        self._v_scale.copy_(torch.abs(value).max() / 50)
+        self._k_scale.copy_(torch.abs(key).max() / self.k_range)
+        self._v_scale.copy_(torch.abs(value).max() / self.v_range)
 
         #We only calculate the scales once
-        self.enable_kv_scale_calc = False
+        self.calculate_kv_scales = False
     
     def extra_repr(self) -> str:
         s = f"head_size={self.impl.head_size}"  # type: ignore

@@ -320,9 +320,6 @@ class Worker(LocalOrDistributedWorkerBase):
         ]
 
     def _warm_up_model(self) -> None:
-        for i in range(self.model_runner.model.model.start_layer, self.model_runner.model.model.end_layer):
-            self.model_runner.model.model.layers[i].self_attn.attn.enable_kv_scale_calc = True
-        
         if not self.model_config.enforce_eager:
             self.model_runner.capture_model(self.gpu_cache)
         # Reset the seed to ensure that the random state is not affected by

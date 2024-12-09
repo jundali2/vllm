@@ -119,6 +119,10 @@ class AttentionMetadata:
     multi_modal_placeholder_index_maps: Optional[Dict[
         str, MultiModalPlaceholderMap.IndexMap]]
 
+    # Enable/disable KV scales calculation. This is so that we can disable the
+    # calculation until after prefill and cuda graph capture.
+    enable_kv_scales_calculation : bool
+
     @property
     @abstractmethod
     def prefill_metadata(self) -> Optional["AttentionMetadata"]:

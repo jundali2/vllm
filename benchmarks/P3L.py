@@ -76,6 +76,7 @@ def vllm_init(args):
               dtype=args.dtype,
               quantization=args.quantization,
               kv_cache_dtype=args.kv_cache_dtype,
+              calculate_kv_scales=False,
               quantization_param_path=args.kv_cache_scales_path
               if args.kv_cache_scales_path != '' else None,
               enforce_eager=args.enforce_eager)

@@ -726,6 +726,7 @@ class CacheConfig:
         # Set calculate_kv_scales to False if the value is unset.
         if self.calculate_kv_scales is None:
             self.calculate_kv_scales = False
+        
 
     def metrics_info(self):
         # convert cache_config to dict(key: str, value: str) for prometheus

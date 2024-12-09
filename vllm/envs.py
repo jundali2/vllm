@@ -82,7 +82,8 @@ if TYPE_CHECKING:
     VLLM_SYNC_SERVER_ENGINE_STEPS_BETWEEN_POLLS: int = 1
     VLLM_MOE_PADDING: bool = False
     VLLM_FP8_PADDING: bool = True
-
+    K_SCALE_CONSTANT: int = 100
+    V_SCALE_CONSTANT: int = 80
 
 def get_default_cache_root():
     return os.getenv(
@@ -535,6 +536,14 @@ environment_variables: Dict[str, Callable[[], Any]] = {
     # Pad the weight for moe kernel or not
     "VLLM_FP8_PADDING":
     lambda: bool(int(os.getenv("VLLM_FP8_PADDING", "1"))),
+
+    # Divisor for on-the-fly key scale factor calculation for FP8 quantized KV Cache
+    "K_SCALE_CONSTANT":
+    lambda: int(os.getenv("K_SCALE_CONSTANT", "100")),
+
+    # Divisor for on-the-fly key scale factor calculation for FP8 quantized KV Cache
+    "V_SCALE_CONSTANT":
+    lambda: int(os.getenv("V_SCALE_CONSTANT", "80")),
 }
 
 # end-env-vars-definition
