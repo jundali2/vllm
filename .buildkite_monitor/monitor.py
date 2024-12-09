@@ -62,6 +62,12 @@ def fetch_data(params, token=BUILDKITE_API_TOKEN, org_slug=ORGANIZATION_SLUG, pi
         return pd.DataFrame()
 
 df = fetch_data(params)
+if df.empty:
+    print('No data to process')
+    file_name = PATH_TO_LOGS + 'alerts_' + datetime.now(zoneinfo.ZoneInfo('Europe/Helsinki')).isoformat() + '_no_data_fetched.txt'
+    with open(file_name, 'w') as file:
+        file.write(f"No data to process")
+    raise SystemExit
 
 def write_log(df, prefix, path=PATH_TO_LOGS):
     '''Writing logs for testing purposes'''
@@ -85,6 +91,7 @@ def types_fix(df, jobs=False):
     return df
 
 df = types_fix(df, jobs=False)
+
 
 
 
