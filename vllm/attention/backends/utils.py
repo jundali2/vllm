@@ -288,7 +288,7 @@ class CommonMetadataBuilder(AttentionMetadataBuilder[TAttentionMetadata]):
             context_lens_tensor=context_lens_tensor,
             block_tables=block_tables,
             use_cuda_graph=use_captured_graph,
-            enable_kv_scales_calculation=enable_kv_scales_calculation,
+            # enable_kv_scales_calculation=enable_kv_scales_calculation,
         )
 
 
@@ -340,7 +340,7 @@ class CommonAttentionState(AttentionState):
             context_lens_tensor=None,
             block_tables=self._graph_block_tables[:batch_size],
             use_cuda_graph=True,
-        )
+            )
         if is_encoder_decoder_model:
             # The encoder decoder model works only with XFormers backend.
             # Assert the same.

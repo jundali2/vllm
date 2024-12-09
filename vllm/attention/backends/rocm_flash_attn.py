@@ -183,8 +183,7 @@ class ROCmFlashAttentionMetadata(AttentionMetadata, PagedAttentionMetadata):
             encoder_seq_lens_tensor=self.encoder_seq_lens_tensor,
             max_encoder_seq_len=self.max_encoder_seq_len,
             cross_slot_mapping=self.cross_slot_mapping,
-            cross_block_tables=self.cross_block_tables,
-            enable_kv_scales_calculation=True)
+            cross_block_tables=self.cross_block_tables)
         return self._cached_prefill_metadata
 
     @property
@@ -218,8 +217,7 @@ class ROCmFlashAttentionMetadata(AttentionMetadata, PagedAttentionMetadata):
             encoder_seq_lens_tensor=self.encoder_seq_lens_tensor,
             max_encoder_seq_len=self.max_encoder_seq_len,
             cross_slot_mapping=self.cross_slot_mapping,
-            cross_block_tables=self.cross_block_tables,
-            enable_kv_scales_calculation=True)
+            cross_block_tables=self.cross_block_tables)
         # Batch may be composed of prefill|decodes, adjust query start indices
         # to refer to the start of decodes when the two are split apart.
         # E.g. in tokens:[3 prefills|6 decodes], query_start_loc=[3,9] => [0,6].
