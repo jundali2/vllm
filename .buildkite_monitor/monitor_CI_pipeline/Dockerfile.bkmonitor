@@ -1,0 +1,12 @@
+FROM python:3
+
+WORKDIR /container_workspace
+
+COPY requirements-bkmonitor.txt ./
+RUN apt-get update && apt-get install python3-pip -y
+RUN pip install --no-cache-dir -r requirements-bkmonitor.txt
+
+COPY . .
+
+#CMD ["/bin/bash"]
+CMD ["python3", "./monitor.py"]
