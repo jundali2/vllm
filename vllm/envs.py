@@ -82,8 +82,8 @@ if TYPE_CHECKING:
     VLLM_MOE_PADDING: bool = False
     VLLM_FP8_PADDING: bool = True
     VLLM_ENABLE_V1_MULTIPROCESSING: bool = False
-    K_SCALE_CONSTANT: int = 100
-    V_SCALE_CONSTANT: int = 80
+    K_SCALE_CONSTANT: int = 200
+    V_SCALE_CONSTANT: int = 100
 
 def get_default_cache_root():
     return os.getenv(
@@ -531,11 +531,11 @@ environment_variables: Dict[str, Callable[[], Any]] = {
 
     # Divisor for on-the-fly key scale factor calculation for FP8 quantized KV Cache
     "K_SCALE_CONSTANT":
-    lambda: int(os.getenv("K_SCALE_CONSTANT", "100")),
+    lambda: int(os.getenv("K_SCALE_CONSTANT", "200")),
 
     # Divisor for on-the-fly key scale factor calculation for FP8 quantized KV Cache
     "V_SCALE_CONSTANT":
-    lambda: int(os.getenv("V_SCALE_CONSTANT", "80")),
+    lambda: int(os.getenv("V_SCALE_CONSTANT", "100")),
 }
 
 # end-env-vars-definition
