@@ -1266,8 +1266,9 @@ void paged_attention(
     torch::Tensor& context_lens,  // [num_seqs]
     int64_t block_size, int64_t max_context_len,
     const c10::optional<torch::Tensor>& alibi_slopes,
-    const std::string& kv_cache_dtype, torch::Tensor& k_scale, torch::Tensor& v_scale,
-    const c10::optional<torch::Tensor>& fp8_out_scale, int64_t partition_size) {
+    const std::string& kv_cache_dtype, torch::Tensor& k_scale,
+    torch::Tensor& v_scale, const c10::optional<torch::Tensor>& fp8_out_scale,
+    int64_t partition_size) {
   const int head_size = query.size(2);
   if (kv_cache_dtype == "auto") {
     if (query.dtype() == at::ScalarType::Half) {

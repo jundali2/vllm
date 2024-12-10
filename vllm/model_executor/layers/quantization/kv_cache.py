@@ -73,6 +73,6 @@ class BaseKVCacheMethod(QuantizeMethodBase):
                     "Using KV cache scaling factor 1.0 for fp8_e4m3. This "
                     "may cause accuracy issues. Please make sure k/v_scale "
                     "scaling factors are available in the fp8 checkpoint.")
-        
+
         del layer.k_scale
         del layer.v_scale

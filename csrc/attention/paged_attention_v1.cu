@@ -54,9 +54,9 @@ void paged_attention_v1_launcher(
     torch::Tensor& value_cache, int num_kv_heads, float scale,
     torch::Tensor& block_tables, torch::Tensor& seq_lens, int max_seq_len,
     const c10::optional<torch::Tensor>& alibi_slopes, torch::Tensor& k_scale,
-    torch::Tensor& v_scale, const int tp_rank, const int blocksparse_local_blocks,
-    const int blocksparse_vert_stride, const int blocksparse_block_size,
-    const int blocksparse_head_sliding_step) {
+    torch::Tensor& v_scale, const int tp_rank,
+    const int blocksparse_local_blocks, const int blocksparse_vert_stride,
+    const int blocksparse_block_size, const int blocksparse_head_sliding_step) {
   int num_seqs = query.size(0);
   int num_heads = query.size(1);
   int head_size = query.size(2);
@@ -195,8 +195,9 @@ void paged_attention_v1(
     torch::Tensor& seq_lens,      // [num_seqs]
     int64_t block_size, int64_t max_seq_len,
     const c10::optional<torch::Tensor>& alibi_slopes,
-    const std::string& kv_cache_dtype, torch::Tensor& k_scale, torch::Tensor& v_scale,
-    const int64_t tp_rank, const int64_t blocksparse_local_blocks,
+    const std::string& kv_cache_dtype, torch::Tensor& k_scale,
+    torch::Tensor& v_scale, const int64_t tp_rank,
+    const int64_t blocksparse_local_blocks,
     const int64_t blocksparse_vert_stride, const int64_t blocksparse_block_size,
     const int64_t blocksparse_head_sliding_step, const int64_t num_threads) {
   const bool is_block_sparse = (blocksparse_vert_stride > 1);

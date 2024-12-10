@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from dataclasses import dataclass, fields, field
+from dataclasses import dataclass, field, fields
 from typing import (TYPE_CHECKING, Any, Dict, Generic, List, Optional, Set,
                     Tuple, Type, TypeVar)
 
@@ -126,7 +126,8 @@ class AttentionMetadata:
 
     # Enable/disable KV scales calculation. This is so that we can disable the
     # calculation until after prefill and cuda graph capture.
-    enable_kv_scales_calculation : bool = field(init=False, default_factory=lambda: True)
+    enable_kv_scales_calculation: bool = field(init=False,
+                                               default_factory=lambda: True)
 
     @property
     @abstractmethod
@@ -248,8 +249,8 @@ class AttentionImpl(ABC, Generic[T]):
         value: torch.Tensor,
         kv_cache: torch.Tensor,
         attn_metadata: T,
-        k_scale: float = 1.0,
-        v_scale: float = 1.0,
+        k_scale: torch.Tensor,
+        v_scale: torch.Tensor,
         attn_type: str = AttentionType.DECODER,
         output: Optional[torch.Tensor] = None,
         fp8_out_scale: Optional[torch.Tensor] = None,

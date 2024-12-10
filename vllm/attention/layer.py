@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 import torch
 import torch.nn as nn
 
+import vllm.envs as envs
 from vllm.attention import AttentionMetadata, AttentionType
 from vllm.attention.selector import backend_name_to_enum, get_attn_backend
 from vllm.config import CacheConfig, get_current_vllm_config
@@ -13,7 +14,7 @@ from vllm.model_executor.layers.quantization.base_config import (
 from vllm.model_executor.layers.quantization.kv_cache import BaseKVCacheMethod
 from vllm.platforms import _Backend, current_platform
 from vllm.utils import direct_register_custom_op
-import vllm.envs as envs
+
 
 class Attention(nn.Module):
     """Attention layer.
@@ -121,7 +122,7 @@ class Attention(nn.Module):
             raise ValueError(f"Duplicate layer name: {prefix}")
         compilation_config.static_forward_context[prefix] = self
         self.layer_name = prefix
-        
+
         self.k_range = envs.K_SCALE_CONSTANT
         self.v_range = envs.V_SCALE_CONSTANT
 
@@ -135,9 +136,10 @@ class Attention(nn.Module):
         attn_type: str = AttentionType.DECODER,
         fp8_out_scale: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
-        if self.calculate_kv_scales and attn_metadata.enable_kv_scales_calculation:
+        if self.calculate_kv_scales and \
+            attn_metadata.enable_kv_scales_calculation:
             self.calc_kv_scales(key, value)
-    
+
         if self.use_direct_call:
             return self.impl.forward(query,
                                      key,
@@ -174,7 +176,7 @@ class Attention(nn.Module):
         self._v_scale.copy_(torch.abs(value).max() / self.v_range)
         #We only calculate the scales once
         self.calculate_kv_scales = False
-    
+
     def extra_repr(self) -> str:
         s = f"head_size={self.impl.head_size}"  # type: ignore
         s += f", num_heads={self.impl.num_heads}"  # type: ignore

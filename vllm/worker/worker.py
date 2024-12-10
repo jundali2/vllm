@@ -284,7 +284,7 @@ class Worker(LocalOrDistributedWorkerBase):
         if self.model_runner.lora_manager:
             self.model_runner.remove_all_loras()
         gc.collect()
-        
+
         return num_gpu_blocks, num_cpu_blocks
 
     def _assert_memory_footprint_increased_during_profiling(self):

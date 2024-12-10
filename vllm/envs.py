@@ -85,6 +85,7 @@ if TYPE_CHECKING:
     K_SCALE_CONSTANT: int = 200
     V_SCALE_CONSTANT: int = 100
 
+
 def get_default_cache_root():
     return os.getenv(
         "XDG_CACHE_HOME",
@@ -529,11 +530,11 @@ environment_variables: Dict[str, Callable[[], Any]] = {
     "VLLM_ENABLE_V1_MULTIPROCESSING":
     lambda: bool(int(os.getenv("VLLM_ENABLE_V1_MULTIPROCESSING", "0"))),
 
-    # Divisor for on-the-fly key scale factor calculation for FP8 quantized KV Cache
+    # Divisor for dynamic key scale factor calculation for FP8 KV Cache
     "K_SCALE_CONSTANT":
     lambda: int(os.getenv("K_SCALE_CONSTANT", "200")),
 
-    # Divisor for on-the-fly key scale factor calculation for FP8 quantized KV Cache
+    # Divisor for dynamic value scale factor calculation for FP8 KV Cache
     "V_SCALE_CONSTANT":
     lambda: int(os.getenv("V_SCALE_CONSTANT", "100")),
 }

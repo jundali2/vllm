@@ -159,8 +159,8 @@ __global__ void reshape_and_cache_kernel(
                                          // block_size]
     const int64_t* __restrict__ slot_mapping,  // [num_tokens]
     const int key_stride, const int value_stride, const int num_heads,
-    const int head_size, const int block_size, const int x, const float* k_scale,
-    const float* v_scale) {
+    const int head_size, const int block_size, const int x,
+    const float* k_scale, const float* v_scale) {
   const int64_t token_idx = blockIdx.x;
   const int64_t slot_idx = slot_mapping[token_idx];
   if (slot_idx < 0) {
