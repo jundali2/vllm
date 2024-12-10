@@ -270,8 +270,6 @@ class CommonMetadataBuilder(AttentionMetadataBuilder[TAttentionMetadata]):
             self.multimodal_placeholder_maps.items()
         }
 
-        enable_kv_scales_calculation = True
-
         return self._metadata_cls(  # type: ignore
             num_prefills=self.num_prefills,
             slot_mapping=slot_mapping_tensor,
@@ -288,7 +286,6 @@ class CommonMetadataBuilder(AttentionMetadataBuilder[TAttentionMetadata]):
             context_lens_tensor=context_lens_tensor,
             block_tables=block_tables,
             use_cuda_graph=use_captured_graph,
-            # enable_kv_scales_calculation=enable_kv_scales_calculation,
         )
 
 
@@ -340,7 +337,7 @@ class CommonAttentionState(AttentionState):
             context_lens_tensor=None,
             block_tables=self._graph_block_tables[:batch_size],
             use_cuda_graph=True,
-            )
+        )
         if is_encoder_decoder_model:
             # The encoder decoder model works only with XFormers backend.
             # Assert the same.
