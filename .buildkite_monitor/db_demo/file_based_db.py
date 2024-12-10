@@ -37,6 +37,7 @@ WAITING_TIME_ALERT_THR = 10800 # 3 hours
 AGENT_FAILED_BUILDS_THR = 3 # agents declaired unhealthy if they have failed jobs from >=3 unique builds
 RECIPIENTS = ['hissu.hyvarinen@amd.com', 'olga.miroshnichenko@amd.com', 'alexei.ivanov@amd.com']
 PATH_TO_LOGS = '/mnt/home/buildkite_logs/'
+PATH_TO_TABLES = '/mnt/home/vllm_fresh/.buildkite_monitor/db_demo/'
 
 
 params = {
@@ -50,11 +51,11 @@ now_utc = pd.Timestamp.now(tz='UTC')
 raw['timestamp'] = now_utc
 
 now = datetime.now(zoneinfo.ZoneInfo('Europe/Helsinki')).strftime('%Y-%m-%d_%H:%M')
-raw.drop(['pipeline.steps'], axis=1).to_parquet(f'raw_data/raw_data_fetch_{now}.parquet', index=False)
+raw.drop(['pipeline.steps'], axis=1).to_parquet(PATH_TO_TABLES + f'raw_data/raw_data_fetch_{now}.parquet', index=False)
 
-builds_bronze_path = 'bronze_tables/builds.parquet'
-jobs_bronze_path = 'bronze_tables/jobs.parquet'
-agents_bronze_path = 'bronze_tables/agents.parquet'
+builds_bronze_path = PATH_TO_TABLES + 'bronze_tables/builds.parquet'
+jobs_bronze_path = PATH_TO_TABLES + 'bronze_tables/jobs.parquet'
+agents_bronze_path = PATH_TO_TABLES + 'bronze_tables/agents.parquet'
 
 builds_useful_columns = ['timestamp', 'url', 'id', 'web_url', 'number', 'state', 'jobs']
 jobs_useful_columns = ['build_url', 'id', 'name', 'state',  'web_url', 'soft_failed', 'created_at', 'scheduled_at', 'runnable_at', 'started_at', 'finished_at', 'expired_at', 'retried', 'retried_in_job_id', 'retries_count', 'retry_source',
@@ -88,8 +89,8 @@ agents = agents[['timestamp', 'agent_name', 'agent_id', 'agent_web_url', 'agent_
 bronze_agents = bronze_agents(agents, False)    
 
 # silver layer
-jobs_silver_path = 'silver_tables/jobs.parquet'
-builds_silver_path = 'silver_tables/builds.parquet'
+jobs_silver_path = PATH_TO_TABLES + 'silver_tables/jobs.parquet'
+builds_silver_path = PATH_TO_TABLES + 'silver_tables/builds.parquet'
 
 if not os.path.exists(jobs_silver_path):
     print("Silver jobs table doesn't exist")
