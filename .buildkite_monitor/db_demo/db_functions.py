@@ -4,6 +4,8 @@ import os
 import glob
 import difflib
 import time
+PATH_TO_TABLES = '/mnt/home/vllm_fresh/.buildkite_monitor/db_demo/'
+
 
 def fetch_data(params, token, org_slug, pipe_slug):
     # Set the URL
@@ -134,9 +136,9 @@ def compute_diff(old_log, new_log):
     )
     return ''.join(diff)
 
-builds_bronze_path = 'bronze_tables/builds.parquet'
-jobs_bronze_path = 'bronze_tables/jobs.parquet'
-agents_bronze_path = 'bronze_tables/agents.parquet'
+builds_bronze_path = PATH_TO_TABLES + 'bronze_tables/builds.parquet'
+jobs_bronze_path = PATH_TO_TABLES + 'bronze_tables/jobs.parquet'
+agents_bronze_path = PATH_TO_TABLES + 'bronze_tables/agents.parquet'
 
 def bronze_builds(df, testing):
    if not os.path.exists(builds_bronze_path):
