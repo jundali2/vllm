@@ -160,9 +160,9 @@ def log_alerts(df, wait_time_thr=WAITING_TIME_ALERT_THR, agent_failed_builds_thr
     unhealthy_agents = failed_jobs_from_diff_builds[failed_jobs_from_diff_builds.nunique_failed_builds>=agent_failed_builds_thr]
     for _, row in unhealthy_agents.iterrows():
         new_row = pd.DataFrame({'time': now, 'alert_type': 'agent', 'id_job': np.nan, 'state_job': np.nan, 'name': np.nan, 'number': np.nan, 'id_build': np.nan, 'waited_seconds': np.nan,  
-                        'web_url_job': np.nan, 'agent_id': row['agent_id'], 'agent_name': row['agent_name'], 'agent_web_url': row['agent_web_url'], 'nunique_failed_builds': row['nunique_failed_builds'], 'failed_builds': [row['failed_builds'].tolist()], 'pipeline_name': row['pipeline_name']}, index=[0])
+                        'web_url_job': np.nan, 'agent_id': row['agent_id'], 'agent_name': row['agent_name'], 'agent_web_url': row['agent_web_url'], 'nunique_failed_builds': row['nunique_failed_builds'], 'failed_builds': [row['failed_builds'].tolist()], 'pipeline_name': np.nan}, index=[0])
         
-        alert_message = f"Agent {row['agent_name']} has failed jobs from {row['nunique_failed_builds']} unique builds from pipeline {row['pipeline_name']}. More info at {row['agent_web_url']}"
+        alert_message = f"Agent {row['agent_name']} has failed jobs from {row['nunique_failed_builds']} unique builds. More info at {row['agent_web_url']}"
         alerts.append(alert_message)
         alerts_df = pd.concat([alerts_df, new_row], ignore_index=True)
 
@@ -213,9 +213,9 @@ def alert(df, alerts_sent=alerts_sent, wait_time_thr=WAITING_TIME_ALERT_THR, age
                 if any(failed_build in sent_failed_builds for failed_build in row['failed_builds']):
                     continue
         new_row = pd.DataFrame({'time': now, 'alert_type': 'agent', 'id_job': np.nan, 'state_job': np.nan, 'name': np.nan, 'number': np.nan, 'id_build': np.nan, 'waited_seconds': np.nan,  
-                        'web_url_job': np.nan, 'agent_id': row['agent_id'], 'agent_name': row['agent_name'], 'agent_web_url': row['agent_web_url'], 'nunique_failed_builds': row['nunique_failed_builds'], 'failed_builds': [row['failed_builds'].tolist()], 'pipeline_name': row['pipeline_name']}, index=[0])
+                        'web_url_job': np.nan, 'agent_id': row['agent_id'], 'agent_name': row['agent_name'], 'agent_web_url': row['agent_web_url'], 'nunique_failed_builds': row['nunique_failed_builds'], 'failed_builds': [row['failed_builds'].tolist()], 'pipeline_name': np.nan}, index=[0])
         
-        alert_message = f"Agent {row['agent_name']} has failed jobs from {row['nunique_failed_builds']} unique builds from pipeline {row['pipeline_name']}. More info at {row['agent_web_url']}"
+        alert_message = f"Agent {row['agent_name']} has failed jobs from {row['nunique_failed_builds']} unique builds. More info at {row['agent_web_url']}"
         alerts.append(alert_message)
         alerts_df = pd.concat([alerts_df, new_row], ignore_index=True)
 
