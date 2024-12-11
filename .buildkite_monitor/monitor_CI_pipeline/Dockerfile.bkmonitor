@@ -3,10 +3,10 @@ FROM python:3
 WORKDIR /container_workspace
 
 COPY requirements-bkmonitor.txt ./
-RUN apt-get update && apt-get install python3-pip -y
+RUN apt-get update && apt-get install python3-pip moreutils -y
 RUN pip install --no-cache-dir -r requirements-bkmonitor.txt
 
 COPY . .
 
 #CMD ["/bin/bash"]
-CMD ["python3", "./monitor.py"]
+CMD python3 ./monitor.py 2>&1 | ts '[%Y-%m-%d %H:%M:%S]' >> /mnt/home/buildkite_logs/ci/logfile.log
